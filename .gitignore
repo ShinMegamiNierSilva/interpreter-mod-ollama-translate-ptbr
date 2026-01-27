@@ -33,3 +33,15 @@ Thumbs.db
 
 # Debug files
 debug_capture.png
+
+# Models
+*.gguf
+*.bin
+*.whl
+
+# Temporary scripts
+test_*.py
+check_*.py
+debug_*.py
+fix_cuda_paths.py
+diag_meiki.py

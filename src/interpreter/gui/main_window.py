@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         self._capture: Capture | None = None
 
         # Worker for OCR/translation (uses Python threading internally)
-        self._process_worker = ProcessWorker()
+        self._process_worker = ProcessWorker(config=config)
         self._process_worker.text_ready.connect(self._on_text_ready)
         self._process_worker.regions_ready.connect(self._on_regions_ready)
         self._process_worker.ocr_results_ready.connect(self._on_ocr_results_ready)
@@ -324,7 +324,74 @@ class MainWindow(QMainWindow):
 
         appearance_layout.addLayout(visual_grid)
 
+        appearance_layout.addLayout(visual_grid)
+
         layout.addWidget(appearance_group)
+
+        # ==================== TRANSLATION ====================
+        translation_group = QGroupBox("Translation")
+        translation_layout = QGridLayout(translation_group)
+
+        # Backend selection
+        translation_layout.addWidget(QLabel("Backend:"), 0, 0)
+        self._backend_combo = QComboBox()
+        self._backend_combo.addItem("Sugoi V4 (Offline)", "sugoi")
+        self._backend_combo.addItem("Ollama (Local LLM)", "ollama")
+        self._backend_combo.addItem("LlamaCPP (CUDA/GGUF)", "llamacpp")
+        
+        # Set current selection
+        current_backend = self._config.translation_backend
+        index = self._backend_combo.findData(current_backend)
+        if index >= 0:
+            self._backend_combo.setCurrentIndex(index)
+        
+        self._backend_combo.currentIndexChanged.connect(self._on_backend_changed)
+        translation_layout.addWidget(self._backend_combo, 0, 1)
+
+        # Ollama Model
+        self._ollama_model_label = QLabel("Model Name:")
+        translation_layout.addWidget(self._ollama_model_label, 1, 0)
+        
+        from PySide6.QtWidgets import QLineEdit, QFileDialog
+        self._ollama_model_input = QLineEdit(self._config.ollama_model)
+        self._ollama_model_input.setPlaceholderText("e.g., gemma3:4b")
+        self._ollama_model_input.editingFinished.connect(self._on_ollama_settings_changed)
+        translation_layout.addWidget(self._ollama_model_input, 1, 1)
+
+        # LlamaCPP Model Path
+        self._llamacpp_model_label = QLabel("Model Path:")
+        translation_layout.addWidget(self._llamacpp_model_label, 2, 0)
+        
+        model_path_layout = QHBoxLayout()
+        self._llamacpp_model_input = QLineEdit(self._config.llamacpp_model_path)
+        self._llamacpp_model_input.setPlaceholderText("Path to .gguf file")
+        self._llamacpp_model_input.setReadOnly(True) 
+        model_path_layout.addWidget(self._llamacpp_model_input)
+        
+        self._llamacpp_browse_btn = QPushButton("Browse")
+        self._llamacpp_browse_btn.clicked.connect(self._browse_llamacpp_model)
+        model_path_layout.addWidget(self._llamacpp_browse_btn)
+        
+        # Container widget for layout to add to grid
+        path_container = QWidget()
+        path_container.setLayout(model_path_layout)
+        # Fix margins
+        model_path_layout.setContentsMargins(0, 0, 0, 0)
+        translation_layout.addWidget(path_container, 2, 1)
+
+        # Target Language
+        self._target_lang_label = QLabel("Target Language:")
+        translation_layout.addWidget(self._target_lang_label, 3, 0)
+        
+        self._target_lang_input = QLineEdit(self._config.target_language)
+        self._target_lang_input.setPlaceholderText("e.g., Thai")
+        self._target_lang_input.editingFinished.connect(self._on_ollama_settings_changed)
+        translation_layout.addWidget(self._target_lang_input, 3, 1)
+
+        # Initial visibility state
+        self._update_translation_ui_state()
+
+        layout.addWidget(translation_group)
 
         # ==================== STATUS ====================
         # Models status (at bottom, less prominent)
@@ -537,7 +604,7 @@ class MainWindow(QMainWindow):
 
         # Stop and restart the worker to reload models
         self._process_worker.stop()
-        self._process_worker = ProcessWorker()
+        self._process_worker = ProcessWorker(config=self._config)
         self._process_worker.text_ready.connect(self._on_text_ready)
         self._process_worker.regions_ready.connect(self._on_regions_ready)
         self._process_worker.models_ready.connect(self._on_models_ready)
@@ -798,6 +865,90 @@ class MainWindow(QMainWindow):
         # Save to config
         self._config.hotkeys["toggle_overlay"] = key_str
         # Clear focus so it stops capturing keys
+        self._pause_hotkey.clearFocus()
+
+    def _on_backend_changed(self, index: int):
+        """Handle translation backend change."""
+        backend = self._backend_combo.currentData()
+        self._config.translation_backend = backend
+        self._config.save()
+        
+        self._update_translation_ui_state()
+        self._reload_translation_model()
+
+    def _on_ollama_settings_changed(self):
+        """Handle Ollama/LlamaCPP settings change."""
+        self._config.ollama_model = self._ollama_model_input.text()
+        self._config.target_language = self._target_lang_input.text()
+        self._config.save()
+        
+        # Only reload if backend is actually active
+        if self._config.translation_backend in ["ollama", "llamacpp"]:
+            self._reload_translation_model()
+
+    def _browse_llamacpp_model(self):
+        """Open file dialog to browse for GGUF model."""
+        from PySide6.QtWidgets import QFileDialog
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select GGUF Model", "", "GGUF Models (*.gguf);;All Files (*)"
+        )
+        if file_path:
+            self._config.llamacpp_model_path = file_path
+            self._llamacpp_model_input.setText(file_path)
+            self._config.save()
+            if self._config.translation_backend == "llamacpp":
+                self._reload_translation_model()
+
+    def _update_translation_ui_state(self):
+        """Show/hide inputs based on selected backend."""
+        backend = self._backend_combo.currentData()
+        is_ollama = backend == "ollama"
+        is_llamacpp = backend == "llamacpp"
+        
+        # Ollama fields
+        self._ollama_model_label.setVisible(is_ollama)
+        self._ollama_model_input.setVisible(is_ollama)
+        
+        # LlamaCPP fields
+        self._llamacpp_model_label.setVisible(is_llamacpp)
+        self._llamacpp_model_input.setVisible(is_llamacpp)
+        self._llamacpp_browse_btn.setVisible(is_llamacpp)
+        if hasattr(self, "_llamacpp_model_input"): 
+             # The container widget itself needs to be managed if we want to hide the row, 
+             # but for now hiding the children handles the visual clutter enough
+             self._llamacpp_model_input.parentWidget().setVisible(is_llamacpp)
+
+        # Common fields
+        self._target_lang_label.setVisible(is_ollama or is_llamacpp)
+        self._target_lang_input.setVisible(is_ollama or is_llamacpp)
+
+    def _reload_translation_model(self):
+        """Reload the translation worker with new settings."""
+        self.statusBar().showMessage("Reloading translation model...")
+        
+        # Stop current worker
+        self._process_worker.stop()
+        
+        # Create new worker with updated config
+        self._process_worker = ProcessWorker(config=self._config)
+        self._process_worker.text_ready.connect(self._on_text_ready)
+        self._process_worker.regions_ready.connect(self._on_regions_ready)
+        self._process_worker.ocr_results_ready.connect(self._on_ocr_results_ready)
+        self._process_worker.models_ready.connect(self._on_models_ready)
+        self._process_worker.models_failed.connect(self._on_models_failed)
+        self._process_worker.ocr_status.connect(self._on_ocr_status)
+        self._process_worker.translation_status.connect(self._on_translation_status)
+        
+        # Restart
+        self._process_worker.set_mode(self._mode)
+        # Apply current OCR confidence
+        if self._capture:
+             title = self._current_window_title
+             confidence = self._config.get_ocr_confidence(title)
+        else:
+             confidence = self._config.ocr_confidence
+        
+        self._process_worker.start(confidence)
         self._pause_hotkey.clearFocus()
 
     def _on_mode_hotkey_changed(self, key_sequence: QKeySequence):

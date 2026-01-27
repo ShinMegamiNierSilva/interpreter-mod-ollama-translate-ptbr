@@ -172,7 +172,10 @@ class TranslationCache:
         self._cache[text] = translation
 
 
-class Translator:
+from .ollama_translator import OllamaTranslator
+from .llamacpp_translator import LlamaCppTranslator
+
+class SugoiTranslator:
     """Translates Japanese text to English using Sugoi V4 (CTranslate2)."""
 
     def __init__(
@@ -306,3 +309,97 @@ class Translator:
             True if model is loaded, False otherwise.
         """
         return self._translator is not None
+
+
+class Translator:
+    """Main translator class that delegates to the configured backend."""
+
+    def __init__(self, config=None):
+        self._config = config
+        self._backend = None
+        # Shared cache for all backends
+        self._cache = TranslationCache()
+        
+        # Determine backend from config or default
+        self._backend_type = "sugoi"
+        if self._config and hasattr(self._config, "translation_backend"):
+            self._backend_type = self._config.translation_backend
+
+    def load(self) -> None:
+        """Load the selected translation backend."""
+        if self._backend is not None:
+            return
+
+        # Pass cache_size/threshold from constants if available, or defaults
+        # Currently TranslationCache uses defaults from constants
+        
+        if self._backend_type == "ollama":
+            model = "gemma3:4b"
+            target_lang = "Thai"
+            if self._config:
+                model = getattr(self._config, "ollama_model", model)
+                target_lang = getattr(self._config, "target_language", target_lang)
+                
+            self._backend = OllamaTranslator(model=model, target_language=target_lang)
+        elif self._backend_type == "llamacpp":
+            model_path = ""
+            target_lang = "Thai"
+            if self._config:
+                model_path = getattr(self._config, "llamacpp_model_path", "")
+                target_lang = getattr(self._config, "target_language", target_lang)
+            
+            # Allow empty path if not set, but it will fail to load if still empty
+            self._backend = LlamaCppTranslator(model_path=model_path, target_language=target_lang)
+        else:
+            # Default to Sugoi
+            # Note: SugoiTranslator has its own internal cache, we should disable it 
+            # or rely on the wrapper cache. For now, let's keep Sugoi as is but 
+            # we will cache on top of it (double caching is harmless but inefficient)
+            # OR we bypass our cache for Sugoi if we want to rely on its specific logic.
+            # But the user wants STABILITY for Ollama.
+            self._backend = SugoiTranslator()
+            
+        self._backend.load()
+
+    def translate(self, text: str) -> tuple[str, bool]:
+        """Translate text using the active backend with caching.
+        
+        Returns:
+            Tuple of (translated text, was_cached).
+        """
+        if not text or not text.strip():
+            return "", False
+
+        # 1. Check shared cache (Exact + Fuzzy)
+        cached = self._cache.get(text)
+        if cached is not None:
+            return cached, True
+
+        if self._backend is None:
+            self.load()
+            
+        # 2. Perform Translation
+        if self._backend_type == "ollama" or self._backend_type == "llamacpp":
+            # Ollama/LlamaCPP backend returns simple string
+            result = self._backend.translate(text)
+            was_cached_backend = False # It was not cached in the backend
+        else:
+            # Sugoi returns (str, bool)
+            result, was_cached_backend = self._backend.translate(text)
+            # If Sugoi returned from its own cache, we might want to populate ours?
+            # Ideally we'd remove Sugoi's internal cache eventually.
+
+        # 3. Store in Shared Cache
+        self._cache.put(text, result)
+        
+        return result, False # Return False to indicate it was a "fresh" translation for this call (or True if we want to bubble up backend cache?)
+        # Actually, if we hit our cache, we returned True above. 
+        # If we are here, we computed it. Even if Sugoi had it cached, for *this layer* it was a miss/computation.
+        # But wait, workers.py displays "(cached)" based on this flag.
+        # If Sugoi says it was cached, we should probably report it as cached?
+        # But for Ollama stability, the cache hit happens at step 1.
+
+        return result, was_cached_backend
+
+    def is_loaded(self) -> bool:
+        return self._backend is not None and self._backend.is_loaded()

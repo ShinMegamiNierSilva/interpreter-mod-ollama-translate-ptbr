@@ -92,8 +92,9 @@ class ProcessWorker(QObject):
     ocr_status = Signal(str)
     translation_status = Signal(str)
 
-    def __init__(self):
+    def __init__(self, config=None):
         super().__init__()
+        self._config = config  # Store config
         self._ocr: OCR | None = None
         self._translator: Translator | None = None
         self._mode = OverlayMode.BANNER
@@ -170,7 +171,7 @@ class ProcessWorker(QObject):
         # Load translation model
         self.translation_status.emit("loading")
         try:
-            self._translator = Translator()
+            self._translator = Translator(config=self._config)
             self._translator.load()
             self._translation_failed = False
             self.translation_status.emit("ready")

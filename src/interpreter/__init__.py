@@ -20,6 +20,10 @@ __version__ = version("interpreter-v2")
 
 def main():
     """Entry point for the application."""
+    # Setup CUDA paths for onnxruntime-gpu before importing GUI/Libraries
+    from .cuda_setup import setup_cuda_paths
+    setup_cuda_paths()
+
     from .gui import run
 
     return run()

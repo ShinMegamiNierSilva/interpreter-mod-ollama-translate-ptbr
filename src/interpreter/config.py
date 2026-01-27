@@ -41,6 +41,10 @@ class Config:
         window_title: str = "Snes9x",
         ocr_confidence: float = 0.6,
         overlay_mode: OverlayMode = OverlayMode.BANNER,
+        translation_backend: str = "sugoi",
+        ollama_model: str = "gemma3:4b",
+        target_language: str = "Thai",
+        llamacpp_model_path: str = "",
         font_family: str | None = None,
         font_size: int = 26,
         font_color: str = "#FFFFFF",
@@ -56,6 +60,10 @@ class Config:
         self.window_title = window_title
         self.ocr_confidence = ocr_confidence  # Global default
         self.overlay_mode = overlay_mode
+        self.translation_backend = translation_backend
+        self.ollama_model = ollama_model
+        self.target_language = target_language
+        self.llamacpp_model_path = llamacpp_model_path
         self.font_family = font_family  # None = system default
         self.font_size = font_size
         self.font_color = font_color
@@ -116,6 +124,10 @@ class Config:
                 window_title=data.get("window_title", cls.DEFAULT_WINDOW_TITLE),
                 ocr_confidence=float(data.get("ocr_confidence", cls.DEFAULT_OCR_CONFIDENCE)),
                 overlay_mode=overlay_mode,
+                translation_backend=data.get("translation_backend", "sugoi"),
+                ollama_model=data.get("ollama_model", "gemma3:4b"),
+                target_language=data.get("target_language", "Thai"),
+                llamacpp_model_path=data.get("llamacpp_model_path", ""),
                 font_family=data.get("font_family"),  # None = system default
                 font_size=int(data.get("font_size", 26)),
                 font_color=data.get("font_color", "#FFFFFF"),
@@ -156,6 +168,12 @@ ocr_confidence: 0.6
 
 # Overlay mode: "banner" (subtitle bar) or "inplace" (over game text)
 overlay_mode: banner
+
+# Translation settings
+# translation_backend: "sugoi" or "ollama"
+translation_backend: sugoi 
+ollama_model: "gemma3:4b"
+target_language: "Thai"
 
 # Subtitle appearance
 font_size: 26
@@ -257,6 +275,10 @@ hotkeys:
             "window_title": str(self.window_title) if self.window_title else "",
             "ocr_confidence": float(self.ocr_confidence),
             "overlay_mode": self.overlay_mode.value,
+            "translation_backend": str(self.translation_backend),
+            "ollama_model": str(self.ollama_model),
+            "target_language": str(self.target_language),
+            "llamacpp_model_path": str(self.llamacpp_model_path) if hasattr(self, "llamacpp_model_path") else "",
             "font_size": int(self.font_size),
             "font_color": str(self.font_color),
             "background_color": str(self.background_color),

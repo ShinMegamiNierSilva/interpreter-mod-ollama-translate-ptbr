@@ -70,7 +70,13 @@ class OCR:
         logger.info("loading meikiocr")
         from meikiocr import MeikiOCR
 
-        self._model = MeikiOCR()
+        try:
+             # Try passing provider="cuda" (based on debug signature check)
+             self._model = MeikiOCR(provider="cuda")
+        except TypeError:
+             # Fallback if signature varies
+             self._model = MeikiOCR()
+             
         logger.info("meikiocr ready")
 
     def _run_ocr_and_filter(self, image: NDArray[np.uint8]) -> list[dict]:
