@@ -1,90 +1,91 @@
-# Interpreter
+# Interpreter (Ollama Mod)
 
-Offline screen translator for Japanese retro games. Captures text from any window, performs OCR, translates to English, and displays subtitles in a floating overlay.
+An enhanced version of **Interpreter**, an offline screen translator for Japanese retro games. This modification adds support for **Ollama** and **LlamaCPP** (CUDA), allowing you to translate Japanese game text into **Thai**, English, or any other language supported by modern LLMs.
 
 ![screenshot](screenshot.png)
 
-## Features
+## New Features (Mod)
 
-- **Fully offline** - No cloud APIs, no internet required after setup
-- **Free** - No API costs or subscriptions
-- **Private** - Text never leaves your machine
-- **Optimized for retro games** - Uses MeikiOCR, trained specifically on Japanese game text
-- **Two overlay modes** - Banner (subtitle bar) or inplace (text over game)
-- **Translation caching** - Fuzzy matching avoids re-translating similar text
-- **Multi-display support** - Overlay appears on the same display as the game
+-   **Ollama Support**: Use local LLMs via Ollama (e.g., `gemma3:4b`) for high-quality translation.
+-   **LlamaCPP (CUDA)**: Run GGUF models directly with GPU acceleration for maximum speed.
+-   **CUDA Powered OCR**: Upgraded `MeikiOCR` to use `onnxruntime-gpu` for faster text detection.
+-   **Thai Language Support**: Translate Japanese directly to Thai (or any target language).
+-   **Translation Caching**: Intelligent caching key-value store to stabilize LLM outputs and prevent flickering.
+-   **Enhanced GUI**: New settings for backend selection (Sugoi / Ollama / LlamaCPP) and model configuration.
+
+## Original Features
+
+-   **Fully offline** - No cloud APIs, no internet required after setup
+-   **Optimized for retro games** - Uses MeikiOCR, trained specifically on Japanese game text
+-   **Two overlay modes** - Banner (subtitle bar) or inplace (text over game)
+-   **Multi-display support** - Overlay appears on the same display as the game
 
 ## Requirements
 
-- **Windows 10 version 1903+**, macOS, or Linux (X11/XWayland/Wayland)
-
-### Linux Notes
-
-- **Global hotkeys** require `input` group membership. The installer will show instructions.
-- **Native Wayland capture** requires GStreamer PipeWire plugin. The installer will attempt to install it automatically.
-- **Inplace overlay** on Wayland only works with fullscreen windows (Wayland's security model prevents knowing window positions).
+-   **Windows 10/11** (Tested on Windows 11)
+-   **NVIDIA GPU** (Tested with RTX 5070) - Required for CUDA acceleration
+-   **Python 3.12+** (Required for `llama-cpp-python` wheel)
+-   **Ollama** (Optional, for Ollama backend)
 
 ## Installation
 
-### One-liner Install
+1.  **Install `uv`** (Universal Python Package Manager):
+    ```powershell
+    pip install uv
+    ```
 
-**macOS/Linux:**
-```bash
-curl -LsSf https://raw.githubusercontent.com/bquenin/interpreter/main/install.sh | bash
-```
+2.  **Clone the repository**:
+    ```powershell
+    git clone https://github.com/quutamo888/interpreter-mod-ollama-translate-thai
+    cd interpreter-mod-ollama-translate-thai
+    ```
 
-**Windows (PowerShell):**
-```powershell
-powershell -c "irm https://raw.githubusercontent.com/bquenin/interpreter/main/install.ps1 | iex"
-```
+3.  **Run the application**:
+    ```powershell
+    uv run interpreter-v2
+    ```
+    (Dependencies will be installed automatically on the first run).
 
-Then run with `interpreter-v2`.
+## Configuration
 
-## Upgrading
+### Translation Backends
 
-To update to the latest version, run the installer again (see Installation above).
+Go to the **Translation** tab in the GUI to switch backends:
 
-## Uninstalling
+1.  **Sugoi V4 (Offline)**:
+    -   Original backend. Fast, Japanese -> English only.
+    -   Fully offline, no extra setup.
 
-**macOS/Linux:**
-```bash
-curl -LsSf https://raw.githubusercontent.com/bquenin/interpreter/main/uninstall.sh | bash
-```
+2.  **Ollama (Local LLM)**:
+    -   Requires [Ollama](https://ollama.com/) installed and running (`ollama serve`).
+    -   **Model**: e.g., `gemma3:4b` (Pull it first: `ollama pull gemma3:4b`).
+    -   **Target Language**: e.g., `Thai`.
 
-**Windows (PowerShell):**
-```powershell
-powershell -c "irm https://raw.githubusercontent.com/bquenin/interpreter/main/uninstall.ps1 | iex"
-```
-
-This removes interpreter-v2, config files, and cached models.
-
-## Usage
-
-```bash
-interpreter-v2
-```
-
-This opens the GUI where you can select a window to capture and configure all settings.
-
-## Overlay Modes
-
-### Banner Mode (default)
-A subtitle bar at the bottom of the screen displaying translated text. Draggable, opaque background, centered text.
-
-### Inplace Mode
-Transparent overlay positioned over the game window. Translated text appears directly over the original Japanese text at OCR-detected positions. Click-through so you can interact with the game.
+3.  **LlamaCPP (CUDA/GGUF)**:
+    -   Runs `.gguf` models directly with CUDA acceleration.
+    -   **Model Path**: Browse to your `.gguf` file (e.g., `HY-MT1.5-1.8B-Q8_0.gguf`).
+    -   **Target Language**: e.g., `Thai`.
+    -   **Note**: Models should be "Instruction Tuned" (e.g., `gemma-it`) for best results.
 
 ## How It Works
 
-1. **Screen Capture** - Captures the target window at the configured refresh rate
-2. **OCR** - [MeikiOCR](https://github.com/rtr46/meikiocr) extracts Japanese text (optimized for pixel fonts)
-3. **Translation** - [Sugoi V4](https://huggingface.co/entai2965/sugoi-v4-ja-en-ctranslate2) translates Japanese to English
-4. **Display** - Shows translated text in the selected overlay mode
+1.  **Capture**: Captures the game window.
+2.  **OCR**: Extracts Japanese text using **MeikiOCR** (GPU accelerated).
+3.  **Translation**: 
+    -   Checks **Translation Cache** (fuzzy match) to see if we already translated this text (prevents flickering).
+    -   If new, sends to **Ollama** or **LlamaCPP** for translation to Thai.
+4.  **Overlay**: Displays the result.
 
 ## Troubleshooting
 
-### Poor OCR accuracy
-Try adjusting the OCR confidence slider in the GUI. Lower values include more text (but may include garbage), higher values are stricter.
+### Capture button "doesn't work"
+-   Ensure you have an NVIDIA GPU and CUDA drivers installed.
+-   The app tries to load CUDA 12 binaries.
 
-### Slow performance
-First run downloads models (~1.5GB). Subsequent runs use cached models from `~/.cache/huggingface/`.
+### Translation "flickers"
+-   This is normal for LLMs, but the added **Translation Cache** significantly reduces this by reusing translations for static text.
+
+### Empty Translation Output
+-   Ensure your model supports the target language.
+-   For LlamaCPP, ensure you are using an Instruction-tuned model (`-it` or `-instruct`) compatible with the internal chat template.
+
