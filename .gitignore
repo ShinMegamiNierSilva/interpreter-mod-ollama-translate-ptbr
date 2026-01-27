@@ -38,6 +38,7 @@ debug_capture.png
 *.gguf
 *.bin
 *.whl
+!llama_cpp_python-0.3.16-cp312-cp312-win_amd64.whl
 
 # Temporary scripts
 test_*.py

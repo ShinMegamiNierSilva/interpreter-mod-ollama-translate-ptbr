@@ -40,11 +40,17 @@ An enhanced version of **Interpreter**, an offline screen translator for Japanes
     cd interpreter-mod-ollama-translate-thai
     ```
 
-3.  **Run the application**:
+3.  **Install Custom LlamaCPP Wheel** (Required for CUDA support):
+    This repository includes a custom-built wheel for `llama-cpp-python` with CUDA support for Python 3.12.
+    ```powershell
+    uv add "llama_cpp_python-0.3.16-cp312-cp312-win_amd64.whl"
+    ```
+
+4.  **Run the application**:
     ```powershell
     uv run interpreter-v2
     ```
-    (Dependencies will be installed automatically on the first run).
+    (Other dependencies will be installed automatically on the first run).
 
 ## Configuration
 
