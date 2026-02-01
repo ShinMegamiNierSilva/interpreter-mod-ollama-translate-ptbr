@@ -173,7 +173,7 @@ class TranslationCache:
 
 
 from .ollama_translator import OllamaTranslator
-#from .llamacpp_translator import LlamaCppTranslator
+from .llamacpp_translator import LlamaCppTranslator
 
 class SugoiTranslator:
     """Translates Japanese text to English using Sugoi V4 (CTranslate2)."""

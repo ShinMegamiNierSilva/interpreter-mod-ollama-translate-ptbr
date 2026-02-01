@@ -63,7 +63,7 @@ class OllamaTranslator:
         if not self._is_ready:
             self.load()
 
-        prompt = f"You are a professional translator. Translate the following Japanese text to {self.target_language} (Brazil). Use a natural, informal tone suitable for a visual novel and games. Keep honorifics if necessary. Output only the translated text, do not add any notes or explanations:\n\n{text}"
+        prompt = f"You are a professional translator. Translate the following Japanese text to {self.target_language} (Brazil). Use a natural tone suitable for a visual novel and games. Keep honorifics if necessary. Output only the translated text, do not add any notes or explanations:\n\n{text}"
 
         try:
             response = ollama.chat(model=self.model, messages=[

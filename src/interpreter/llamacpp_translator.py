@@ -41,10 +41,18 @@ class LlamaCppTranslator:
         if not self._llm:
             self.load()
 
-        # Use chat completion for instruction-tuned models (like gemma-it)
+        # Gemma-2 fix: Merge system instructions into the user prompt
+        # instead of using a separate "system" role.
+        instruction = (
+            f"You are a honest professional translator that doesn't try to change the meaning of a sentence. Translate the following Japanese text to {self.target_language} (Brazil). "
+            "Use a natural tone suitable for a visual novel and games. Keep honorifics if necessary."
+            "Output only the translated text, do not add any notes or explanations.\n\n"
+            f"Japanese: {text}\n"
+            "Translation:"
+        )
+
         messages = [
-            {"role": "system", "content": f"You are a professional translator. Translate the following Japanese text to {self.target_language} (Brazil). Use a natural, informal tone suitable for a visual novel and games. Keep honorifics if necessary. Output only the translated text, do not add any notes or explanations."},
-            {"role": "user", "content": text}
+            {"role": "user", "content": instruction}
         ]
         
         logger.info("llamacpp translating", text=text)
@@ -53,9 +61,9 @@ class LlamaCppTranslator:
             output = self._llm.create_chat_completion(
                 messages=messages,
                 max_tokens=256,
+                temperature=0.3, # Adicionado para mais precisão
                 stop=["\n", "Japanese:", "Translation:"],
             )
-            # logger.debug("llamacpp raw output", output=output)
             
             result = output['choices'][0]['message']['content'].strip()
             logger.info("llamacpp result", result=result)
