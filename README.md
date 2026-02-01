@@ -1,5 +1,3 @@
-In src/interpreter/translate.py I removed from .llamacpp_translator import LlamaCppTranslator because I couldn't make it work on my pc.
-
 # Interpreter (Ollama Mod)
 
 An enhanced version of **Interpreter**, an offline screen translator for Japanese retro games. This modification adds support for **Ollama** and **LlamaCPP** (CUDA), allowing you to translate Japanese game text into **Brazilian Portuguese**, English, or any other language supported by modern LLMs.
