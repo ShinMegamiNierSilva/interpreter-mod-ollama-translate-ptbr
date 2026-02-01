@@ -1,6 +1,6 @@
 # Interpreter (Ollama Mod)
 
-An enhanced version of **Interpreter**, an offline screen translator for Japanese retro games. This modification adds support for **Ollama** and **LlamaCPP** (CUDA), allowing you to translate Japanese game text into **Thai**, English, or any other language supported by modern LLMs.
+An enhanced version of **Interpreter**, an offline screen translator for Japanese retro games. This modification adds support for **Ollama** and **LlamaCPP** (CUDA), allowing you to translate Japanese game text into **Brazilian Portuguese**, English, or any other language supported by modern LLMs.
 
 ![screenshot](screenshot.png)
 
@@ -9,7 +9,7 @@ An enhanced version of **Interpreter**, an offline screen translator for Japanes
 -   **Ollama Support**: Use local LLMs via Ollama (e.g., `gemma3:4b`) for high-quality translation.
 -   **LlamaCPP (CUDA)**: Run GGUF models directly with GPU acceleration for maximum speed.
 -   **CUDA Powered OCR**: Upgraded `MeikiOCR` to use `onnxruntime-gpu` for faster text detection.
--   **Thai Language Support**: Translate Japanese directly to Thai (or any target language).
+-   **Brazilian Portuguese Language Support**: Translate Japanese directly to Brazilian Portuguese (or any target language).
 -   **Translation Caching**: Intelligent caching key-value store to stabilize LLM outputs and prevent flickering.
 -   **Enhanced GUI**: New settings for backend selection (Sugoi / Ollama / LlamaCPP) and model configuration.
 
@@ -65,12 +65,12 @@ Go to the **Translation** tab in the GUI to switch backends:
 2.  **Ollama (Local LLM)**:
     -   Requires [Ollama](https://ollama.com/) installed and running (`ollama serve`).
     -   **Model**: e.g., `gemma3:4b` (Pull it first: `ollama pull gemma3:4b`).
-    -   **Target Language**: e.g., `Thai`.
+    -   **Target Language**: e.g., `Brazilian Portuguese`.
 
 3.  **LlamaCPP (CUDA/GGUF)**:
     -   Runs `.gguf` models directly with CUDA acceleration.
     -   **Model Path**: Browse to your `.gguf` file (e.g., `HY-MT1.5-1.8B-Q8_0.gguf`).
-    -   **Target Language**: e.g., `Thai`.
+    -   **Target Language**: e.g., `Brazilian Portuguese`.
     -   **Note**: Models should be "Instruction Tuned" (e.g., `gemma-it`) for best results.
 
 ## How It Works
@@ -79,7 +79,7 @@ Go to the **Translation** tab in the GUI to switch backends:
 2.  **OCR**: Extracts Japanese text using **MeikiOCR** (GPU accelerated).
 3.  **Translation**: 
     -   Checks **Translation Cache** (fuzzy match) to see if we already translated this text (prevents flickering).
-    -   If new, sends to **Ollama** or **LlamaCPP** for translation to Thai.
+    -   If new, sends to **Ollama** or **LlamaCPP** for translation to Brazilian Portuguese.
 4.  **Overlay**: Displays the result.
 
 ## Troubleshooting

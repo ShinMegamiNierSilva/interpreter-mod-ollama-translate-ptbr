@@ -98,6 +98,3 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["interpreter"]
 
-[tool.uv.sources]
-llama-cpp-python = { path = "llama_cpp_python-0.3.16-cp312-cp312-win_amd64.whl" }
-

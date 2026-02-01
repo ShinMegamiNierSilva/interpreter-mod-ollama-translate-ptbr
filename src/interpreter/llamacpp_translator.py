@@ -7,7 +7,7 @@ logger = log.get_logger()
 class LlamaCppTranslator:
     """Translates text using a local GGUF model via llama-cpp-python."""
 
-    def __init__(self, model_path: str, target_language: str = "Thai"):
+    def __init__(self, model_path: str, target_language: str = "Brazilian Portuguese"):
         self.model_path = model_path
         self.target_language = target_language
         self._llm = None
@@ -43,7 +43,7 @@ class LlamaCppTranslator:
 
         # Use chat completion for instruction-tuned models (like gemma-it)
         messages = [
-            {"role": "system", "content": f"You are a professional translator. Translate the following Japanese text to {self.target_language}. Output only the translated text, do not add any notes or explanations."},
+            {"role": "system", "content": f"You are a professional translator. Translate the following Japanese text to {self.target_language} (Brazil). Use a natural, informal tone suitable for a visual novel and games. Keep honorifics if necessary. Output only the translated text, do not add any notes or explanations."},
             {"role": "user", "content": text}
         ]
         

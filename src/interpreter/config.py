@@ -43,7 +43,7 @@ class Config:
         overlay_mode: OverlayMode = OverlayMode.BANNER,
         translation_backend: str = "sugoi",
         ollama_model: str = "gemma3:4b",
-        target_language: str = "Thai",
+        target_language: str = "Brazilian Portuguese",
         llamacpp_model_path: str = "",
         font_family: str | None = None,
         font_size: int = 26,
@@ -126,7 +126,7 @@ class Config:
                 overlay_mode=overlay_mode,
                 translation_backend=data.get("translation_backend", "sugoi"),
                 ollama_model=data.get("ollama_model", "gemma3:4b"),
-                target_language=data.get("target_language", "Thai"),
+                target_language=data.get("target_language", "Brazilian Portuguese"),
                 llamacpp_model_path=data.get("llamacpp_model_path", ""),
                 font_family=data.get("font_family"),  # None = system default
                 font_size=int(data.get("font_size", 26)),
@@ -173,7 +173,7 @@ overlay_mode: banner
 # translation_backend: "sugoi" or "ollama"
 translation_backend: sugoi 
 ollama_model: "gemma3:4b"
-target_language: "Thai"
+target_language: "Brazilian Portuguese"
 
 # Subtitle appearance
 font_size: 26

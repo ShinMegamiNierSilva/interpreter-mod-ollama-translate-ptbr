@@ -8,12 +8,12 @@ logger = log.get_logger()
 class OllamaTranslator:
     """Translates text using a local Ollama model."""
 
-    def __init__(self, model: str = "gemma3:4b", target_language: str = "Thai"):
+    def __init__(self, model: str = "gemma3:4b", target_language: str = "Brazilian Portuguese"):
         """Initialize the Ollama translator.
 
         Args:
             model: Name of the Ollama model to use (e.g., "gemma3:4b").
-            target_language: Target language for translation (e.g., "Thai").
+            target_language: Target language for translation (e.g., "Brazilian Portuguese").
         """
         self.model = model
         self.target_language = target_language
@@ -63,7 +63,7 @@ class OllamaTranslator:
         if not self._is_ready:
             self.load()
 
-        prompt = f"Translate the following Japanese text to {self.target_language}. Only provide the translation, no explanations:\n\n{text}"
+        prompt = f"You are a professional translator. Translate the following Japanese text to {self.target_language} (Brazil). Use a natural, informal tone suitable for a visual novel and games. Keep honorifics if necessary. Output only the translated text, do not add any notes or explanations:\n\n{text}"
 
         try:
             response = ollama.chat(model=self.model, messages=[

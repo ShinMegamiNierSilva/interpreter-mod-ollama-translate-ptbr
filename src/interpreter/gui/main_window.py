@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
         translation_layout.addWidget(self._target_lang_label, 3, 0)
         
         self._target_lang_input = QLineEdit(self._config.target_language)
-        self._target_lang_input.setPlaceholderText("e.g., Thai")
+        self._target_lang_input.setPlaceholderText("e.g., Brazilian Portuguese")
         self._target_lang_input.editingFinished.connect(self._on_ollama_settings_changed)
         translation_layout.addWidget(self._target_lang_input, 3, 1)
 

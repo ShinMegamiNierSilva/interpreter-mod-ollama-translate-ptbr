@@ -173,7 +173,7 @@ class TranslationCache:
 
 
 from .ollama_translator import OllamaTranslator
-from .llamacpp_translator import LlamaCppTranslator
+#from .llamacpp_translator import LlamaCppTranslator
 
 class SugoiTranslator:
     """Translates Japanese text to English using Sugoi V4 (CTranslate2)."""
@@ -335,7 +335,7 @@ class Translator:
         
         if self._backend_type == "ollama":
             model = "gemma3:4b"
-            target_lang = "Thai"
+            target_lang = "Brazilian Portuguese"
             if self._config:
                 model = getattr(self._config, "ollama_model", model)
                 target_lang = getattr(self._config, "target_language", target_lang)
@@ -343,7 +343,7 @@ class Translator:
             self._backend = OllamaTranslator(model=model, target_language=target_lang)
         elif self._backend_type == "llamacpp":
             model_path = ""
-            target_lang = "Thai"
+            target_lang = "Brazilian Portuguese"
             if self._config:
                 model_path = getattr(self._config, "llamacpp_model_path", "")
                 target_lang = getattr(self._config, "target_language", target_lang)
